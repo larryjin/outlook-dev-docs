@@ -13,6 +13,8 @@ ms.author: jasonjoh
 
 Building an Office 365 Connector for your application is easy. All you need to do is register your connector in our developer portal, add a **Connect to Office 365** button to your application and implement your connector. Once you add a Connect button to your application, your users are able to use it to authorize their Office 365 Groups or Inbox to receive your actionable message cards. You can make it easy for your users to discover the connector by publishing to our catalog.
 
+!New: if you are building your app for Microsoft Teams, you will now be able to seamlessly integrate your configuration experience within the Teams client.
+
 ## Build your own Connector
 
 ### Registering your Connector
@@ -65,6 +67,31 @@ The following query parameters are sent back in the response:
 | `error`       | The error code that is returned if the application doesn't return successfully. |
 | `app_type` | The values returned can be `mail`, `groups` or `teams` corresponding to the Office 365 Mail, Office 365 Groups or Microsoft Teams respectively. |
 | `user_objectId` | This is the unique id corresponding to the Office 365 user who initiated set up of the connector. It is returned only when the application returns successfully. It should be secured. This value can be used to associate the user in Office 365 who set up the configuration to the user in your service. |
+
+### Integrate your configuration experience in Microsoft Teams
+In Teams, your users can complete the entire webhook configuration experience without having to leave the Teams client. To achieve this experience, Teams will embed your configuration page directly within an iframe. The sequence of operations is as follows:
+1. The user clicks on your connector to begin the configuration process.
+2. Teams will load your configuration experience in line.
+3. The user interacts with your web experience to complete the configuration.
+4. The user presses "Save", which triggers a callback in your code.
+5. Your code will process the save event by retrieving the webhook settings (documented below). Your code should then store the webhook to post events later.
+
+In your code, you'll need to include the Microsoft Teams JS library and register basic callbacks for the initialization and save events. You can reuse your existing web configuration experience or create a separate version to be hosted specifically in Teams. Typically, you'll need to authenticate the user as part of loading your page in step 2 above. Refer to [this link](#) for details on how you can integrate login when your page is embedded.
+
+In addition to code changes, you will need to include your connector as part of your app's manifest.
+
+The following webhook properties are included in the callback:
+
+| Parameter   | Details |
+|-------------|---------|
+| `EntityId`       | Echoes the entity ID provided via `setSettings()`, if available. |
+| `FriendlyName`  | The name of the group selected by the user. |
+| `ContentUrl` | The URL of the configuration page that is loaded. |
+| `WebhookUrl` | The webhook URL for the selected group. Persist the webhook URL & use it to POST structured JSON to send connector cards to the group. The `webhook_url` is returned only when application returns successfully. |
+| `ChannelId` | Unique ID of the channel on which the connector is being. |
+| `AppType` | The values returned can be `mail`, `groups` or `teams` corresponding to the Office 365 Mail, Office 365 Groups or Microsoft Teams respectively. |
+| `UserObjectId` | This is the unique id corresponding to the Office 365 user who initiated setup of the connector. It should be secured. This value can be used to associate the user in Office 365 who set up the configuration to the user in your service. |
+| `EmailAddress` | The email address corresponding to the Office 365 user who initiated setup of the connector. |
 
 ### Secure the webhook URL
 
